@@ -40,6 +40,8 @@ const prompt = ai.definePrompt(
         output: { schema: GenerateModelTurnaroundPromptsOutputSchema },
         prompt: `You are an expert AI art director. Your task is to generate three highly detailed, ultra-realistic image generation prompts for a commercial-style human model photoshoot.
 
+        To ensure consistency across the three images, you will create a fictional, unique name for the model (e.g., "Zayla" or "Kian") and include it in every prompt. This name will act as a seed for the model's appearance.
+
         Base characteristics:
         - Gender: {{{gender}}}
         - Age Group: {{{ageGroup}}}
@@ -48,7 +50,7 @@ const prompt = ai.definePrompt(
         - Hair Style: {{{hairStyle}}}
         - Marketing Archetype: {{{marketingArchetype}}}
         
-        Generate three distinct prompts for a model turnaround, ensuring each prompt is tailored for a specific angle but maintains consistency in the model's appearance. The prompts should be formatted for a high-end text-to-image model.
+        Generate three distinct prompts for a model turnaround, ensuring each prompt is tailored for a specific angle but maintains consistency in the model's appearance by using the same unique model name. The prompts should be formatted for a high-end text-to-image model.
         
         The prompts MUST include the following elements for maximum realism:
         - "Ultra-realistic commercial photography"
@@ -61,9 +63,9 @@ const prompt = ai.definePrompt(
         2.  **leftPrompt**: A close-up shot of the model's left profile. The model should be looking towards the left, off-camera.
         3.  **rightPrompt**: A close-up shot of the model's right profile. The model should be looking towards the right, off-camera.
         
-        Ensure the model's specified characteristics are clearly included in EACH prompt. The output should be a JSON object with the three prompt strings.
+        Ensure the model's specified characteristics AND the unique model name are clearly included in EACH prompt. The output should be a JSON object with the three prompt strings.
 
-        Example for straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model. fair skin, long, wavy brown hair. The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera, on a plain studio background."
+        Example for straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model named Anya. fair skin, long, wavy brown hair. The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera, on a plain studio background."
         `,
     }
 );
