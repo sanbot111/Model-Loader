@@ -37,26 +37,31 @@ const generateModelImagesFlow = ai.defineFlow(
     outputSchema: GenerateModelImagesOutputSchema,
   },
   async (input) => {
+    const negativePrompt = "cartoon, drawing, sketch, anime, disfigured, distorted, ugly, duplicate, morbid, mutilated, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck";
+
     const [straightImage, leftImage, rightImage] = await Promise.all([
       ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.straightPrompt,
         config: {
-            aspectRatio: "1:1"
+            aspectRatio: "1:1",
+            negativePrompt,
         }
       }),
       ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.leftPrompt,
         config: {
-            aspectRatio: "1:1"
+            aspectRatio: "1:1",
+            negativePrompt,
         }
       }),
       ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.rightPrompt,
         config: {
-            aspectRatio: "1:1"
+            aspectRatio: "1:1",
+            negativePrompt,
         }
       }),
     ]);

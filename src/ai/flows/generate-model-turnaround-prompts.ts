@@ -40,8 +40,10 @@ const prompt = ai.definePrompt(
         output: { schema: GenerateModelTurnaroundPromptsOutputSchema },
         prompt: `You are an expert AI art director. Your task is to generate three highly detailed, ultra-realistic image generation prompts for a commercial-style human model photoshoot.
 
-        To ensure consistency across the three images, you will create a fictional, unique name for the model (e.g., "Zayla" or "Kian") and include it in every prompt. This name will act as a seed for the model's appearance.
+        The #1 most important goal is to ensure the model looks like the EXACT SAME PERSON in all three images.
 
+        To achieve this, you will first create a fictional, unique, and uncommon name for the model (e.g., "Zylia" or "Kaelan"). You MUST use this exact name in every prompt. This is the primary method to ensure consistency.
+        
         Base characteristics:
         - Gender: {{{gender}}}
         - Age Group: {{{ageGroup}}}
@@ -50,22 +52,22 @@ const prompt = ai.definePrompt(
         - Hair Style: {{{hairStyle}}}
         - Marketing Archetype: {{{marketingArchetype}}}
         
-        Generate three distinct prompts for a model turnaround, ensuring each prompt is tailored for a specific angle but maintains consistency in the model's appearance by using the same unique model name. The prompts should be formatted for a high-end text-to-image model.
+        Generate three distinct prompts. EACH prompt MUST contain the unique model name AND all the base characteristics listed above.
         
-        The prompts MUST include the following elements for maximum realism:
+        EACH prompt MUST also include the following elements for maximum realism:
         - "Ultra-realistic commercial photography"
         - "cinematic ad campaign lighting"
         - "8k resolution, highly detailed skin pores and texture"
         - "plain studio background"
         
         Output three prompts:
-        1.  **straightPrompt**: A straight-on, close-up headshot. The model should be looking directly at the camera with a neutral but confident expression.
-        2.  **leftPrompt**: A close-up shot of the model's left profile. The model should be looking towards the left, off-camera.
-        3.  **rightPrompt**: A close-up shot of the model's right profile. The model should be looking towards the right, off-camera.
+        1.  **straightPrompt**: A straight-on, close-up headshot of the model looking directly at the camera with a neutral but confident expression.
+        2.  **leftPrompt**: A close-up shot of the model's left profile, looking towards the left, off-camera.
+        3.  **rightPrompt**: A close-up shot of the model's right profile, looking towards the right, off-camera.
         
-        Ensure the model's specified characteristics AND the unique model name are clearly included in EACH prompt. The output should be a JSON object with the three prompt strings.
-
-        Example for straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model named Anya. fair skin, long, wavy brown hair. The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera, on a plain studio background."
+        Example for straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model named Anya, with fair skin and long, wavy brown hair, embodying The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera, on a plain studio background."
+        
+        Do not deviate from these instructions. The consistency of the model's face is critical.
         `,
     }
 );
