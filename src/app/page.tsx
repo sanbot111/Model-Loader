@@ -43,24 +43,6 @@ export default function KotoorModelAI() {
     }
   }, [toast]);
 
-  useEffect(() => {
-    if (isMounted) {
-      try {
-        window.localStorage.setItem(
-          "kotoorModelLibrary",
-          JSON.stringify(modelLibrary)
-        );
-      } catch (error) {
-        console.error("Failed to save model library to localStorage", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not save your new model.",
-        });
-      }
-    }
-  }, [modelLibrary, isMounted, toast]);
-
   const handleGenerate = async () => {
     setIsGenerating(true);
     setActiveModel(null);
@@ -105,25 +87,61 @@ export default function KotoorModelAI() {
         });
         return;
       }
-      setModelLibrary((prevLibrary) => [activeModel, ...prevLibrary]);
-      toast({
-        title: "Model Locked!",
-        description: "The model has been saved to your library.",
-      });
+      const newLibrary = [activeModel, ...modelLibrary];
+      try {
+        window.localStorage.setItem(
+          "kotoorModelLibrary",
+          JSON.stringify(newLibrary)
+        );
+        setModelLibrary(newLibrary);
+        toast({
+          title: "Model Locked!",
+          description: "The model has been saved to your library.",
+        });
+      } catch (error) {
+        if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
+            console.error("Quota exceeded while saving to localStorage", error);
+            toast({
+                variant: "destructive",
+                title: "Library Full",
+                description: "Could not save model: storage quota exceeded. Please remove models from your library to save new ones.",
+                duration: 5000,
+            });
+        } else {
+            console.error("Failed to save model library to localStorage", error);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Could not save your new model.",
+            });
+        }
+      }
     }
   };
 
   const handleDeleteModel = (seed: string) => {
-    setModelLibrary((prevLibrary) =>
-      prevLibrary.filter((model) => model.seed !== seed)
-    );
-    if (activeModel?.seed === seed) {
-      setActiveModel(null);
+    const newLibrary = modelLibrary.filter((model) => model.seed !== seed);
+    try {
+      window.localStorage.setItem(
+        "kotoorModelLibrary",
+        JSON.stringify(newLibrary)
+      );
+      setModelLibrary(newLibrary);
+      if (activeModel?.seed === seed) {
+        setActiveModel(null);
+      }
+      toast({
+        title: "Model Deleted",
+        description: "The model has been removed from your library.",
+      });
+    } catch (error) {
+      console.error("Failed to update model library in localStorage", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not update your library.",
+      });
     }
-    toast({
-      title: "Model Deleted",
-      description: "The model has been removed from your library.",
-    });
   };
 
   const handleSelectModel = (model: ModelData) => {
