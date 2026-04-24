@@ -11,20 +11,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ModelData } from "@/lib/types";
-import { Lock, Loader2, Download } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
 
 type ActiveModelDisplayProps = {
   activeModel: ModelData | null;
   isGenerating: boolean;
-  onLockModel: () => void;
-  isLocked: boolean;
+  onBulkDownload: () => void;
 };
 
 export default function ActiveModelDisplay({
   activeModel,
   isGenerating,
-  onLockModel,
-  isLocked,
+  onBulkDownload,
 }: ActiveModelDisplayProps) {
   const handleDownload = (url: string, filename: string) => {
     const link = document.createElement("a");
@@ -47,9 +45,9 @@ export default function ActiveModelDisplay({
           )}
         </div>
         {activeModel && !isGenerating && (
-          <Button onClick={onLockModel} disabled={isLocked}>
-            <Lock className="mr-2" />
-            {isLocked ? "Model Locked" : "Lock Model"}
+          <Button onClick={onBulkDownload}>
+            <Download className="mr-2" />
+            Bulk Download
           </Button>
         )}
       </div>

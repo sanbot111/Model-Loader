@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import JSZip from "jszip";
 import type { ModelData, FormDataType } from "@/lib/types";
 import { generateModelTurnaroundPrompts } from "@/ai/flows/generate-model-turnaround-prompts";
 import { generateModelImages } from "@/ai/flows/generate-model-images";
 import GeneratorForm from "@/components/GeneratorForm";
 import ActiveModelDisplay from "@/components/ActiveModelDisplay";
-import ModelLibrary from "@/components/ModelLibrary";
 import { useToast } from "@/hooks/use-toast";
 
 const initialFormData: FormDataType = {
@@ -22,26 +22,7 @@ export default function KotoorModelAI() {
   const [formData, setFormData] = useState<FormDataType>(initialFormData);
   const [activeModel, setActiveModel] = useState<ModelData | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [modelLibrary, setModelLibrary] = useState<ModelData[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    setIsMounted(true);
-    try {
-      const item = window.localStorage.getItem("kotoorModelLibrary");
-      if (item) {
-        setModelLibrary(JSON.parse(item));
-      }
-    } catch (error) {
-      console.error("Failed to load model library from localStorage", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not load your saved models.",
-      });
-    }
-  }, [toast]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -78,79 +59,57 @@ export default function KotoorModelAI() {
     }
   };
 
-  const handleLockModel = () => {
-    if (activeModel) {
-      if (modelLibrary.some((model) => model.seed === activeModel.seed)) {
-        toast({
-          title: "Model Already Locked",
-          description: "This model is already in your library.",
-        });
-        return;
-      }
-      const newLibrary = [activeModel, ...modelLibrary];
-      try {
-        window.localStorage.setItem(
-          "kotoorModelLibrary",
-          JSON.stringify(newLibrary)
-        );
-        setModelLibrary(newLibrary);
-        toast({
-          title: "Model Locked!",
-          description: "The model has been saved to your library.",
-        });
-      } catch (error) {
-        if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
-            console.error("Quota exceeded while saving to localStorage", error);
-            toast({
-                variant: "destructive",
-                title: "Library Full",
-                description: "Could not save model: storage quota exceeded. Please remove models from your library to save new ones.",
-                duration: 5000,
-            });
-        } else {
-            console.error("Failed to save model library to localStorage", error);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Could not save your new model.",
-            });
-        }
-      }
+  const dataURItoBlob = (dataURI: string) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
     }
-  };
+    return new Blob([ab], {type: mimeString});
+  }
 
-  const handleDeleteModel = (seed: string) => {
-    const newLibrary = modelLibrary.filter((model) => model.seed !== seed);
+  const handleBulkDownload = async () => {
+    if (!activeModel) return;
+
+    toast({
+      title: "Preparing Download...",
+      description: "Your model assets are being zipped.",
+    });
+
     try {
-      window.localStorage.setItem(
-        "kotoorModelLibrary",
-        JSON.stringify(newLibrary)
-      );
-      setModelLibrary(newLibrary);
-      if (activeModel?.seed === seed) {
-        setActiveModel(null);
-      }
-      toast({
-        title: "Model Deleted",
-        description: "The model has been removed from your library.",
-      });
+      const zip = new JSZip();
+
+      // Create a text file with prompts
+      const promptData = `Straight Prompt:\n${activeModel.prompts.straightPrompt}\n\nLeft Prompt:\n${activeModel.prompts.leftPrompt}\n\nRight Prompt:\n${activeModel.prompts.rightPrompt}`;
+      zip.file("prompts.txt", promptData);
+
+      // Add images to zip
+      zip.file(`straight_${activeModel.seed}.png`, dataURItoBlob(activeModel.imageUrls.straight));
+      zip.file(`left_${activeModel.seed}.png`, dataURItoBlob(activeModel.imageUrls.left));
+      zip.file(`right_${activeModel.seed}.png`, dataURItoBlob(activeModel.imageUrls.right));
+
+      // Generate zip and trigger download
+      const content = await zip.generateAsync({ type: "blob" });
+      
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(content);
+      link.download = `model_${activeModel.seed}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
     } catch (error) {
-      console.error("Failed to update model library in localStorage", error);
+      console.error("Failed to create zip for download", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Could not update your library.",
+        title: "Download Failed",
+        description: "Could not prepare your files for download. Please try again.",
       });
     }
   };
-
-  const handleSelectModel = (model: ModelData) => {
-    setActiveModel(model);
-  };
-  
-  const isModelLocked = activeModel
-    ? modelLibrary.some((m) => m.seed === activeModel.seed)
-    : false;
 
   return (
     <main className="container mx-auto p-4 md:p-8">
@@ -168,15 +127,7 @@ export default function KotoorModelAI() {
           <ActiveModelDisplay
             activeModel={activeModel}
             isGenerating={isGenerating}
-            onLockModel={handleLockModel}
-            isLocked={isModelLocked}
-          />
-          
-          <ModelLibrary
-            models={modelLibrary}
-            onDelete={handleDeleteModel}
-            onSelectModel={handleSelectModel}
-            isMounted={isMounted}
+            onBulkDownload={handleBulkDownload}
           />
         </div>
       </div>
