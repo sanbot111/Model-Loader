@@ -33,6 +33,33 @@ export async function generateModelTurnaroundPrompts(
   return generateModelTurnaroundPromptsFlow(input);
 }
 
+const prompt = ai.definePrompt(
+    {
+        name: 'generateModelTurnaroundPromptsPrompt',
+        input: { schema: GenerateModelTurnaroundPromptsInputSchema },
+        output: { schema: GenerateModelTurnaroundPromptsOutputSchema },
+        prompt: `You are an AI assistant that generates image generation prompts for a realistic human model based on the following characteristics.
+
+        Gender: {{{gender}}}
+        Age Group: {{{ageGroup}}}
+        Region/Ethnicity: {{{regionEthnicity}}}
+        Skin Tone: {{{skinTone}}}
+        Hair Style: {{{hairStyle}}}
+        Marketing Archetype: {{{marketingArchetype}}}
+        
+        Generate three prompts for a model turnaround:
+        1.  **straightPrompt**: A straight close-up shot, looking at the camera.
+        2.  **leftPrompt**: A left side profile close-up shot, looking left.
+        3.  **rightPrompt**: A right side profile close-up shot, looking right.
+        
+        Each prompt must include all the characteristics provided and describe a realistic, commercial-style photograph with cinematic lighting and high detail. The output should be a JSON object with the three prompt strings.
+        For example:
+        straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model. fair skin, long, wavy brown hair. The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera."
+        `,
+    }
+);
+
+
 const generateModelTurnaroundPromptsFlow = ai.defineFlow(
   {
     name: 'generateModelTurnaroundPromptsFlow',
@@ -40,18 +67,10 @@ const generateModelTurnaroundPromptsFlow = ai.defineFlow(
     outputSchema: GenerateModelTurnaroundPromptsOutputSchema
   },
   async (input) => {
-    const { gender, ageGroup, regionEthnicity, skinTone, hairStyle, marketingArchetype } = input;
-
-    const straightPrompt = `Ultra-realistic commercial photography, face straight close-up shot of a ${ageGroup} ${regionEthnicity} ${gender} model. ${skinTone} skin, ${hairStyle}. ${marketingArchetype} styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera.`;
-
-    const leftPrompt = `Ultra-realistic commercial photography, left side profile close-up shot of a ${ageGroup} ${regionEthnicity} ${gender} model. ${skinTone} skin, ${hairStyle}. ${marketingArchetype} styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking left.`;
-
-    const rightPrompt = `Ultra-realistic commercial photography, right side profile close-up shot of a ${ageGroup} ${regionEthnicity} ${gender} model. ${skinTone} skin, ${hairStyle}. ${marketingArchetype} styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking right.`;
-
-    return {
-      straightPrompt,
-      leftPrompt,
-      rightPrompt
-    };
+    const { output } = await prompt(input);
+    if (!output) {
+      throw new Error('Failed to generate model turnaround prompts.');
+    }
+    return output;
   }
 );

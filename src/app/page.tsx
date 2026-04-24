@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { ModelData, FormDataType } from "@/lib/types";
 import { generateModelTurnaroundPrompts } from "@/ai/flows/generate-model-turnaround-prompts";
+import { generateModelImages } from "@/ai/flows/generate-model-images";
 import GeneratorForm from "@/components/GeneratorForm";
 import ActiveModelDisplay from "@/components/ActiveModelDisplay";
 import ModelLibrary from "@/components/ModelLibrary";
@@ -65,33 +66,32 @@ export default function KotoorModelAI() {
     setActiveModel(null);
     try {
       const prompts = await generateModelTurnaroundPrompts(formData);
+      const imageUrls = await generateModelImages(prompts);
+      
       const seed = Math.floor(
         1000000000 + Math.random() * 9000000000
       ).toString();
       
-      // Simulate generation delay
-      setTimeout(() => {
-        const newModel: ModelData = {
-          seed,
-          imageUrls: {
-            straight: `https://picsum.photos/seed/${seed}_straight/500/500`,
-            left: `https://picsum.photos/seed/${seed}_left/500/500`,
-            right: `https://picsum.photos/seed/${seed}_right/500/500`,
-          },
-          prompts,
-          formData,
-        };
-        setActiveModel(newModel);
-        setIsGenerating(false);
-      }, 3000);
-
+      const newModel: ModelData = {
+        seed,
+        imageUrls: {
+          straight: imageUrls.straight,
+          left: imageUrls.left,
+          right: imageUrls.right,
+        },
+        prompts,
+        formData,
+      };
+      setActiveModel(newModel);
+      
     } catch (error) {
-      console.error("Failed to generate model prompts", error);
+      console.error("Failed to generate model", error);
       toast({
         variant: "destructive",
         title: "Generation Failed",
-        description: "There was an error generating the model.",
+        description: "There was an error generating the model. Please try again.",
       });
+    } finally {
       setIsGenerating(false);
     }
   };
