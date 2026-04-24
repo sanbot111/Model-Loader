@@ -117,11 +117,22 @@ export default function KotoorModelAI() {
     setModelLibrary((prevLibrary) =>
       prevLibrary.filter((model) => model.seed !== seed)
     );
+    if (activeModel?.seed === seed) {
+      setActiveModel(null);
+    }
     toast({
       title: "Model Deleted",
       description: "The model has been removed from your library.",
     });
   };
+
+  const handleSelectModel = (model: ModelData) => {
+    setActiveModel(model);
+  };
+  
+  const isModelLocked = activeModel
+    ? modelLibrary.some((m) => m.seed === activeModel.seed)
+    : false;
 
   return (
     <main className="container mx-auto p-4 md:p-8">
@@ -140,11 +151,13 @@ export default function KotoorModelAI() {
             activeModel={activeModel}
             isGenerating={isGenerating}
             onLockModel={handleLockModel}
+            isLocked={isModelLocked}
           />
           
           <ModelLibrary
             models={modelLibrary}
             onDelete={handleDeleteModel}
+            onSelectModel={handleSelectModel}
             isMounted={isMounted}
           />
         </div>

@@ -38,23 +38,32 @@ const prompt = ai.definePrompt(
         name: 'generateModelTurnaroundPromptsPrompt',
         input: { schema: GenerateModelTurnaroundPromptsInputSchema },
         output: { schema: GenerateModelTurnaroundPromptsOutputSchema },
-        prompt: `You are an AI assistant that generates image generation prompts for a realistic human model based on the following characteristics.
+        prompt: `You are an expert AI art director. Your task is to generate three highly detailed, ultra-realistic image generation prompts for a commercial-style human model photoshoot.
 
-        Gender: {{{gender}}}
-        Age Group: {{{ageGroup}}}
-        Region/Ethnicity: {{{regionEthnicity}}}
-        Skin Tone: {{{skinTone}}}
-        Hair Style: {{{hairStyle}}}
-        Marketing Archetype: {{{marketingArchetype}}}
+        Base characteristics:
+        - Gender: {{{gender}}}
+        - Age Group: {{{ageGroup}}}
+        - Region/Ethnicity: {{{regionEthnicity}}}
+        - Skin Tone: {{{skinTone}}}
+        - Hair Style: {{{hairStyle}}}
+        - Marketing Archetype: {{{marketingArchetype}}}
         
-        Generate three prompts for a model turnaround:
-        1.  **straightPrompt**: A straight close-up shot, looking at the camera.
-        2.  **leftPrompt**: A left side profile close-up shot, looking left.
-        3.  **rightPrompt**: A right side profile close-up shot, looking right.
+        Generate three distinct prompts for a model turnaround, ensuring each prompt is tailored for a specific angle but maintains consistency in the model's appearance. The prompts should be formatted for a high-end text-to-image model.
         
-        Each prompt must include all the characteristics provided and describe a realistic, commercial-style photograph with cinematic lighting and high detail. The output should be a JSON object with the three prompt strings.
-        For example:
-        straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model. fair skin, long, wavy brown hair. The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera."
+        The prompts MUST include the following elements for maximum realism:
+        - "Ultra-realistic commercial photography"
+        - "cinematic ad campaign lighting"
+        - "8k resolution, highly detailed skin pores and texture"
+        - "plain studio background"
+        
+        Output three prompts:
+        1.  **straightPrompt**: A straight-on, close-up headshot. The model should be looking directly at the camera with a neutral but confident expression.
+        2.  **leftPrompt**: A close-up shot of the model's left profile. The model should be looking towards the left, off-camera.
+        3.  **rightPrompt**: A close-up shot of the model's right profile. The model should be looking towards the right, off-camera.
+        
+        Ensure the model's specified characteristics are clearly included in EACH prompt. The output should be a JSON object with the three prompt strings.
+
+        Example for straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model. fair skin, long, wavy brown hair. The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera, on a plain studio background."
         `,
     }
 );

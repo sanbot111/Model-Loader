@@ -1,37 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ModelData } from "@/lib/types";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, Download } from "lucide-react";
 
 type ActiveModelDisplayProps = {
   activeModel: ModelData | null;
   isGenerating: boolean;
   onLockModel: () => void;
+  isLocked: boolean;
 };
 
 export default function ActiveModelDisplay({
   activeModel,
   isGenerating,
   onLockModel,
+  isLocked,
 }: ActiveModelDisplayProps) {
-  const renderSkeletons = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {[...Array(3)].map((_, i) => (
-        <Card key={i} className="bg-card/80 flex flex-col">
-          <CardHeader>
-            <Skeleton className="h-5 w-3/4" />
-          </CardHeader>
-          <CardContent className="flex-grow flex items-center justify-center">
-            <Skeleton className="aspect-square w-full rounded-md" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  const handleDownload = (url: string, filename: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <section>
@@ -45,9 +47,9 @@ export default function ActiveModelDisplay({
           )}
         </div>
         {activeModel && !isGenerating && (
-          <Button onClick={onLockModel}>
+          <Button onClick={onLockModel} disabled={isLocked}>
             <Lock className="mr-2" />
-            Lock Model
+            {isLocked ? "Model Locked" : "Lock Model"}
           </Button>
         )}
       </div>
@@ -72,11 +74,11 @@ export default function ActiveModelDisplay({
 
       {activeModel && !isGenerating && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-500">
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader>
               <CardTitle>Straight Close-up</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <Image
                 src={activeModel.imageUrls.straight}
                 alt="Straight close-up of the model"
@@ -86,12 +88,33 @@ export default function ActiveModelDisplay({
                 data-ai-hint="person portrait"
               />
             </CardContent>
+            <CardFooter className="flex-col items-start gap-2 pt-4">
+              <div className="flex justify-between items-center w-full">
+                <p className="text-sm font-medium">Prompt</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleDownload(
+                      activeModel.imageUrls.straight,
+                      `straight_${activeModel.seed}.png`
+                    )
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {activeModel.prompts.straightPrompt}
+              </p>
+            </CardFooter>
           </Card>
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader>
               <CardTitle>Left Profile</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <Image
                 src={activeModel.imageUrls.left}
                 alt="Left profile of the model"
@@ -101,12 +124,33 @@ export default function ActiveModelDisplay({
                 data-ai-hint="person profile"
               />
             </CardContent>
+            <CardFooter className="flex-col items-start gap-2 pt-4">
+              <div className="flex justify-between items-center w-full">
+                <p className="text-sm font-medium">Prompt</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleDownload(
+                      activeModel.imageUrls.left,
+                      `left_${activeModel.seed}.png`
+                    )
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {activeModel.prompts.leftPrompt}
+              </p>
+            </CardFooter>
           </Card>
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader>
               <CardTitle>Right Profile</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <Image
                 src={activeModel.imageUrls.right}
                 alt="Right profile of the model"
@@ -116,6 +160,27 @@ export default function ActiveModelDisplay({
                 data-ai-hint="person profile"
               />
             </CardContent>
+            <CardFooter className="flex-col items-start gap-2 pt-4">
+              <div className="flex justify-between items-center w-full">
+                <p className="text-sm font-medium">Prompt</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleDownload(
+                      activeModel.imageUrls.right,
+                      `right_${activeModel.seed}.png`
+                    )
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {activeModel.prompts.rightPrompt}
+              </p>
+            </CardFooter>
           </Card>
         </div>
       )}
