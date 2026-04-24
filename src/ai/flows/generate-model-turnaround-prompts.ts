@@ -38,36 +38,41 @@ const prompt = ai.definePrompt(
         name: 'generateModelTurnaroundPromptsPrompt',
         input: { schema: GenerateModelTurnaroundPromptsInputSchema },
         output: { schema: GenerateModelTurnaroundPromptsOutputSchema },
-        prompt: `You are an expert AI art director. Your task is to generate three highly detailed, ultra-realistic image generation prompts for a commercial-style human model photoshoot.
+        prompt: `You are an expert AI art director specializing in creating hyperrealistic digital humans for commercial use. Your task is to generate three image generation prompts for a single, consistent human model.
 
-        The #1 most important goal is to ensure the model looks like the EXACT SAME PERSON in all three images.
-
-        To achieve this, you will first create a fictional, unique, and uncommon name for the model (e.g., "Zylia" or "Kaelan"). You MUST use this exact name in every prompt. This is the primary method to ensure consistency.
+        **CRITICAL GOAL:** The model MUST look like the EXACT SAME PERSON in all three images. Consistency is paramount.
         
-        Base characteristics:
-        - Gender: {{{gender}}}
-        - Age Group: {{{ageGroup}}}
-        - Region/Ethnicity: {{{regionEthnicity}}}
-        - Skin Tone: {{{skinTone}}}
-        - Hair Style: {{{hairStyle}}}
-        - Marketing Archetype: {{{marketingArchetype}}}
+        **METHOD FOR CONSISTENCY:**
+        1.  Invent a unique, uncommon, and fictional first name for the model (e.g., "Zylia", "Kaelan", "Seraphina").
+        2.  You MUST use this exact name consistently across all three prompts.
         
-        Generate three distinct prompts. EACH prompt MUST contain the unique model name AND all the base characteristics listed above.
+        **BASE CHARACTERISTICS:**
+        -   Unique Name: [Your invented name]
+        -   Gender: {{{gender}}}
+        -   Age Group: {{{ageGroup}}}
+        -   Region/Ethnicity: {{{regionEthnicity}}}
+        -   Skin Tone: {{{skinTone}}}
+        -   Hair Style: {{{hairStyle}}}
+        -   Marketing Archetype: {{{marketingArchetype}}}
         
-        EACH prompt MUST also include the following elements for maximum realism:
-        - "Ultra-realistic commercial photography"
-        - "cinematic ad campaign lighting"
-        - "8k resolution, highly detailed skin pores and texture"
-        - "plain studio background"
+        **PHOTOGRAPHY & REALISM STYLE (Include in EACH prompt):**
+        -   "Ultra-realistic, photorealistic commercial headshot."
+        -   "Shot on a Canon EOS R5 with an 85mm f/1.2 lens, creating a soft, blurred background."
+        -   "Cinematic, soft, and even studio lighting."
+        -   "8k resolution, hyper-detailed, visible skin pores and fine hairs."
+        -   "Neutral expression, looking confident."
+        -   "Set against a seamless, plain, neutral grey studio background."
         
-        Output three prompts:
-        1.  **straightPrompt**: A straight-on, close-up headshot of the model looking directly at the camera with a neutral but confident expression.
-        2.  **leftPrompt**: A close-up shot of the model's left profile, looking towards the left, off-camera.
-        3.  **rightPrompt**: A close-up shot of the model's right profile, looking towards the right, off-camera.
+        **PROMPT STRUCTURE (Output three distinct prompts):**
         
-        Example for straightPrompt: "Ultra-realistic commercial photography, face straight close-up shot of a Millennial Caucasian Female model named Anya, with fair skin and long, wavy brown hair, embodying The Everyday Approachable styling. Cinematic ad campaign lighting, 8k resolution, highly detailed pores and texture, looking at camera, on a plain studio background."
+        1.  **straightPrompt**: A straight-on, close-up headshot of the model looking directly into the camera lens.
+        2.  **leftPrompt**: A close-up shot of the model's left profile (turned 90 degrees to their left), looking off-camera.
+        3.  **rightPrompt**: A close-up shot of the model's right profile (turned 90 degrees to their right), looking off-camera.
         
-        Do not deviate from these instructions. The consistency of the model's face is critical.
+        **EXAMPLE \`straightPrompt\`:**
+        "Ultra-realistic, photorealistic commercial headshot of a Millennial Caucasian Female model named Anya. She has fair skin and long, wavy brown hair, embodying The Everyday Approachable archetype. Shot on a Canon EOS R5 with an 85mm f/1.2 lens. Cinematic, soft, and even studio lighting. 8k resolution, hyper-detailed, visible skin pores. Neutral expression, looking confident and directly into the camera. Set against a seamless, plain, neutral grey studio background."
+        
+        Adhere strictly to these instructions to ensure facial consistency and maximum realism.
         `,
     }
 );
