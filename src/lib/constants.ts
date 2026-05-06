@@ -1,6 +1,6 @@
-export const GENDERS = ["Female", "Male", "Non-binary"];
+export const GENDERS = ["Female", "Male"];
 
-export const AGE_GROUPS = ["Gen Z", "Millennial", "Gen X", "Old"];
+export const AGE_GROUPS = ["Gen Z", "Millennial", "Gen X", "Senior"];
 
 export const REGIONS = [
   "Black",
@@ -11,15 +11,15 @@ export const REGIONS = [
   "Middle Eastern",
 ];
 
-export const SKIN_TONES = ["fair", "tan", "dark"];
+export const SKIN_TONES = ["Fair", "Tan", "Dark"];
 
 export const HAIR_STYLES = [
-  "long, wavy brown hair",
-  "short, black curly hair",
-  "blonde pixie cut",
-  "red straight hair",
-  "bald",
-  "salt and pepper dreadlocks",
+  "Long, wavy brown hair",
+  "Short, black curly hair",
+  "Blonde pixie cut",
+  "Red straight hair",
+  "Bald",
+  "Salt and pepper dreadlocks",
 ];
 
 export const ARCHETYPES = [

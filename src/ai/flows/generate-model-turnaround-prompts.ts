@@ -11,12 +11,12 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateModelTurnaroundPromptsInputSchema = z.object({
-  gender: z.string().describe('The gender of the model (e.g., Male, Female, Non-binary).'),
-  ageGroup: z.string().describe('The age group of the model (e.g., Gen Z, Millennial, Gen X, Old).'),
+  gender: z.string().describe('The gender of the model (e.g., Male, Female).'),
+  ageGroup: z.string().describe('The age group of the model (e.g., Gen Z, Millennial, Gen X, Senior).'),
   regionEthnicity: z.string().describe('The ethnicity of the model (e.g., Black, Asian, Hispanic, Caucasian, South Asian, Middle Eastern).'),
-  skinTone: z.string().describe('The skin tone of the model (e.g., fair, tan, dark).'),
-  hairStyle: z.string().describe('The hair style of the model (e.g., long, wavy brown hair, short, black curly hair).'),
-  marketingArchetype: z.string().describe('The marketing archetype or vibe of the model (e.g., The Corporate Professional, The Urban Creative, The Health/Wellness Consumer, The Everyday Approachable, The High-Fashion/Luxury).')
+  skinTone: z.string().describe('The skin tone of the model (e.g., Fair, Tan, Dark).'),
+  hairStyle: z.string().describe('The hair style of the model.'),
+  marketingArchetype: z.string().describe('The marketing archetype or vibe of the model.')
 });
 export type GenerateModelTurnaroundPromptsInput = z.infer<typeof GenerateModelTurnaroundPromptsInputSchema>;
 
@@ -43,36 +43,32 @@ const prompt = ai.definePrompt(
         **CRITICAL GOAL:** The model MUST look like the EXACT SAME PERSON in all three images. Consistency is paramount.
         
         **METHOD FOR CONSISTENCY:**
-        1.  Invent a unique, uncommon, and fictional first name for the model (e.g., "Zylia", "Kaelan", "Seraphina").
-        2.  You MUST use this exact name consistently across all three prompts.
+        1. Invent a unique, fictional first name for the model.
+        2. Use this name consistently in all prompts to anchor the identity.
         
         **BASE CHARACTERISTICS:**
-        -   Unique Name: [Your invented name]
-        -   Gender: {{{gender}}}
-        -   Age Group: {{{ageGroup}}}
-        -   Region/Ethnicity: {{{regionEthnicity}}}
-        -   Skin Tone: {{{skinTone}}}
-        -   Hair Style: {{{hairStyle}}}
-        -   Marketing Archetype: {{{marketingArchetype}}}
+        - Gender: {{{gender}}}
+        - Age Group: {{{ageGroup}}}
+        - Region/Ethnicity: {{{regionEthnicity}}}
+        - Skin Tone: {{{skinTone}}}
+        - Hair Style: {{{hairStyle}}}
+        - Marketing Archetype: {{{marketingArchetype}}}
         
         **PHOTOGRAPHY & REALISM STYLE (Include in EACH prompt):**
-        -   "Ultra-realistic, photorealistic commercial headshot."
-        -   "Shot on a Canon EOS R5 with an 85mm f/1.2 lens, creating a soft, blurred background."
-        -   "Cinematic, soft, and even studio lighting."
-        -   "8k resolution, hyper-detailed, visible skin pores and fine hairs."
-        -   "Neutral expression, looking confident."
-        -   "Set against a seamless, plain, neutral grey studio background."
+        - "Hyper-realistic, photorealistic commercial beauty headshot."
+        - "Shot on a Sony A7R IV with a 100mm f/2.8 Macro GM lens for extreme detail."
+        - "Professional Rembrandt lighting, soft key light with a subtle rim light to define shape."
+        - "8k resolution, raw photo quality, high-frequency skin textures, visible pores, realistic micro-sweat and fine facial hairs."
+        - "Extremely sharp focus on the eyes, natural catchlights."
+        - "Neutral, professional expression."
+        - "Plain, solid, medium-grey studio backdrop with soft depth of field."
         
-        **PROMPT STRUCTURE (Output three distinct prompts):**
+        **PROMPT STRUCTURE:**
+        1. **straightPrompt**: Front-facing, looking directly into the lens, shoulders square.
+        2. **leftPrompt**: 90-degree left profile shot, looking straight ahead off-camera.
+        3. **rightPrompt**: 90-degree right profile shot, looking straight ahead off-camera.
         
-        1.  **straightPrompt**: A straight-on, close-up headshot of the model looking directly into the camera lens.
-        2.  **leftPrompt**: A close-up shot of the model's left profile (turned 90 degrees to their left), looking off-camera.
-        3.  **rightPrompt**: A close-up shot of the model's right profile (turned 90 degrees to their right), looking off-camera.
-        
-        **EXAMPLE \`straightPrompt\`:**
-        "Ultra-realistic, photorealistic commercial headshot of a Millennial Caucasian Female model named Anya. She has fair skin and long, wavy brown hair, embodying The Everyday Approachable archetype. Shot on a Canon EOS R5 with an 85mm f/1.2 lens. Cinematic, soft, and even studio lighting. 8k resolution, hyper-detailed, visible skin pores. Neutral expression, looking confident and directly into the camera. Set against a seamless, plain, neutral grey studio background."
-        
-        Adhere strictly to these instructions to ensure facial consistency and maximum realism.
+        Adhere strictly to these instructions to ensure total facial consistency and uncanny realism.
         `,
     }
 );
