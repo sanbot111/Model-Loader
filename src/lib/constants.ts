@@ -3,11 +3,11 @@ export const GENDERS = ["Female", "Male", "Non-binary"];
 export const AGE_GROUPS = ["Gen Z", "Millennial", "Gen X", "Old"];
 
 export const REGIONS = [
-  "South Asian",
-  "East Asian",
+  "Black",
+  "Asian",
+  "Hispanic",
   "Caucasian",
-  "African",
-  "Latin American",
+  "South Asian",
   "Middle Eastern",
 ];
 

@@ -13,7 +13,7 @@ import {z} from 'genkit';
 const GenerateModelTurnaroundPromptsInputSchema = z.object({
   gender: z.string().describe('The gender of the model (e.g., Male, Female, Non-binary).'),
   ageGroup: z.string().describe('The age group of the model (e.g., Gen Z, Millennial, Gen X, Old).'),
-  regionEthnicity: z.string().describe('The region or ethnicity of the model (e.g., South Asian, East Asian, Caucasian, African, Latin American, Middle Eastern).'),
+  regionEthnicity: z.string().describe('The ethnicity of the model (e.g., Black, Asian, Hispanic, Caucasian, South Asian, Middle Eastern).'),
   skinTone: z.string().describe('The skin tone of the model (e.g., fair, tan, dark).'),
   hairStyle: z.string().describe('The hair style of the model (e.g., long, wavy brown hair, short, black curly hair).'),
   marketingArchetype: z.string().describe('The marketing archetype or vibe of the model (e.g., The Corporate Professional, The Urban Creative, The Health/Wellness Consumer, The Everyday Approachable, The High-Fashion/Luxury).')
