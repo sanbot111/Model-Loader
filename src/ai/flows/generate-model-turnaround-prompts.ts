@@ -49,10 +49,14 @@ const prompt = ai.definePrompt(
         **BASE CHARACTERISTICS:**
         - Gender: {{{gender}}}
         - Age Group: {{{ageGroup}}}
-        - Region/Ethnicity: {{{regionEthnicity}}}
+        - Region/Ethnicity: {{{regionEthnicity}}} (Facial features MUST strictly reflect this ethnicity with extreme accuracy)
         - Skin Tone: {{{skinTone}}}
         - Hair Style: {{{hairStyle}}}
         - Marketing Archetype: {{{marketingArchetype}}}
+        
+        **CONSISTENT ATTIRE (Include in EACH prompt):**
+        - "The model is wearing a simple, solid black, professional high-neck top or dress."
+        - "This black attire ensures a clean, uniform look across all angles, focusing attention on the face."
         
         **PHOTOGRAPHY & REALISM STYLE (Include in EACH prompt):**
         - "Hyper-realistic, photorealistic commercial beauty headshot."
