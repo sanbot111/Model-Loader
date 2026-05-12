@@ -54,7 +54,13 @@ const prompt = ai.definePrompt(
         - Skin Tone: {{{skinTone}}}
         - Hair Style: {{{hairStyle}}}
         - Marketing Archetype: {{{marketingArchetype}}}
-        - Body Type: {{{bodyType}}} (Incorporate this into the facial and neck structure: Slender models have high definition, Athletic models have strong jawlines, Full-figured models have softer facial contours.)
+        - Body Type: {{{bodyType}}}
+        
+        **BODY TYPE VISUAL CUES (Incorporate into facial/neck structure):**
+        - If Slender: The model has high bone definition, sharp cheekbones, a narrow face shape, and a slim, graceful neck.
+        - If Athletic: The model has a strong, defined jawline, firm facial muscles, and a toned, healthy neck structure.
+        - If Average: The model has balanced facial proportions with moderate definition, neither sharp nor overly soft.
+        - If Full-figured: The model has softer, rounder facial contours, fuller cheeks, and a smooth, fuller neck area.
         
         **CONSISTENT ATTIRE (Include in EACH prompt):**
         - "The model is wearing a simple, solid black, professional high-neck top or dress."
