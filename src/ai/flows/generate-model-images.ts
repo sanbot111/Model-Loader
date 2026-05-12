@@ -37,32 +37,54 @@ const generateModelImagesFlow = ai.defineFlow(
     outputSchema: GenerateModelImagesOutputSchema,
   },
   async (input) => {
+    const safetySettings = [
+      {
+        category: 'HARM_CATEGORY_HATE_SPEECH',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+    ];
+
     const [straightImage, leftImage, rightImage] = await Promise.all([
       ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.straightPrompt,
         config: {
-            aspectRatio: "1:1",
+          aspectRatio: "1:1",
+          safetySettings,
         }
       }),
       ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.leftPrompt,
         config: {
-            aspectRatio: "1:1",
+          aspectRatio: "1:1",
+          safetySettings,
         }
       }),
       ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.rightPrompt,
         config: {
-            aspectRatio: "1:1",
+          aspectRatio: "1:1",
+          safetySettings,
         }
       }),
     ]);
     
     if (!straightImage.media.url || !leftImage.media.url || !rightImage.media.url) {
-        throw new Error('Image generation failed');
+        throw new Error('Image generation failed: One or more images returned no data.');
     }
 
     return {
