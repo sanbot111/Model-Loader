@@ -13,6 +13,8 @@ export const REGIONS = [
 
 export const SKIN_TONES = ["Fair", "Tan", "Dark"];
 
+export const BODY_TYPES = ["Slender", "Athletic", "Average", "Full-figured"];
+
 export const HAIR_STYLES = [
   "Long, wavy brown hair",
   "Short, black curly hair",

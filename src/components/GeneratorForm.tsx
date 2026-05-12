@@ -23,6 +23,7 @@ import {
   AGE_GROUPS,
   REGIONS,
   SKIN_TONES,
+  BODY_TYPES,
   HAIR_STYLES,
   ARCHETYPES,
 } from "@/lib/constants";
@@ -130,6 +131,26 @@ export default function GeneratorForm({
               {SKIN_TONES.map((tone) => (
                 <SelectItem key={tone} value={tone}>
                   {tone}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="body-type">Body Type</Label>
+          <Select
+            value={formData.bodyType}
+            onValueChange={handleSelectChange("bodyType")}
+            disabled={isGenerating}
+          >
+            <SelectTrigger id="body-type">
+              <SelectValue placeholder="Select body type" />
+            </SelectTrigger>
+            <SelectContent>
+              {BODY_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
                 </SelectItem>
               ))}
             </SelectContent>

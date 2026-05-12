@@ -16,7 +16,8 @@ const GenerateModelTurnaroundPromptsInputSchema = z.object({
   regionEthnicity: z.string().describe('The ethnicity of the model (e.g., Black, Asian, Hispanic, Caucasian, South Asian, Middle Eastern).'),
   skinTone: z.string().describe('The skin tone of the model (e.g., Fair, Tan, Dark).'),
   hairStyle: z.string().describe('The hair style of the model.'),
-  marketingArchetype: z.string().describe('The marketing archetype or vibe of the model.')
+  marketingArchetype: z.string().describe('The marketing archetype or vibe of the model.'),
+  bodyType: z.string().describe('The body type of the model (e.g., Slender, Athletic, Average, Full-figured).')
 });
 export type GenerateModelTurnaroundPromptsInput = z.infer<typeof GenerateModelTurnaroundPromptsInputSchema>;
 
@@ -53,6 +54,7 @@ const prompt = ai.definePrompt(
         - Skin Tone: {{{skinTone}}}
         - Hair Style: {{{hairStyle}}}
         - Marketing Archetype: {{{marketingArchetype}}}
+        - Body Type: {{{bodyType}}} (Incorporate this into the facial and neck structure: Slender models have high definition, Athletic models have strong jawlines, Full-figured models have softer facial contours.)
         
         **CONSISTENT ATTIRE (Include in EACH prompt):**
         - "The model is wearing a simple, solid black, professional high-neck top or dress."

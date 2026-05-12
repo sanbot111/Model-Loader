@@ -13,9 +13,10 @@ const initialFormData: FormDataType = {
   gender: "Female",
   ageGroup: "Gen Z",
   regionEthnicity: "Caucasian",
-  skinTone: "fair",
-  hairStyle: "long, wavy brown hair",
+  skinTone: "Fair",
+  hairStyle: "Long, wavy brown hair",
   marketingArchetype: "The Everyday Approachable",
+  bodyType: "Average",
 };
 
 export default function KotoorModelAI() {

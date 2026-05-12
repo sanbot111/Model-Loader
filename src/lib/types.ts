@@ -5,6 +5,7 @@ export interface FormDataType {
   skinTone: string;
   hairStyle: string;
   marketingArchetype: string;
+  bodyType: string;
 }
 
 export interface ModelData {
