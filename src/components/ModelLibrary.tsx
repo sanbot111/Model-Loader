@@ -64,7 +64,11 @@ export default function ModelLibrary({
                     <CardContent className="p-0">
                       <button onClick={() => onSelectModel(model)} className="w-full h-full aspect-[4/5] relative">
                         <Image
-                          src={model.imageUrls.straight}
+                          src={
+                            model.imageResults.imagen?.straight ??
+                            model.imageResults.openai?.straight ??
+                            ""
+                          }
                           alt={`Model with seed ${model.seed}`}
                           fill
                           className="object-cover"
@@ -85,7 +89,15 @@ export default function ModelLibrary({
                           variant="secondary"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={(e) => handleDownload(e, model.imageUrls.straight, `model_${model.seed}.png`)}
+                          onClick={(e) =>
+                            handleDownload(
+                              e,
+                              model.imageResults.imagen?.straight ??
+                                model.imageResults.openai?.straight ??
+                                "",
+                              `model_${model.seed}.png`
+                            )
+                          }
                         >
                           <Download className="h-4 w-4" />
                         </Button>

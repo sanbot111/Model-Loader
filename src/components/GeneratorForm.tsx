@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -16,16 +17,25 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Wand2 } from "lucide-react";
+import { BatchProcessorInput } from "@/components/BatchProcessorInput";
 import type { FormDataType } from "@/lib/types";
 import {
   GENDERS,
   AGE_GROUPS,
-  REGIONS,
-  SKIN_TONES,
-  BODY_TYPES,
-  HAIR_STYLES,
-  ARCHETYPES,
+  regionEthnicityOptions,
+  subGroupOptionsMap,
+  skinToneOptions,
+  hairColorOptions,
+  MALE_FACIAL_HAIR,
+  getBodyTypes,
+  getHairStyles,
+  getArchetypes,
+  getGenderSpecificDefaults,
+  getDefaultSubGroup,
+  hasAtLeastOneEngine,
+  isMaleGender,
 } from "@/lib/constants";
 
 type GeneratorFormProps = {
@@ -33,6 +43,7 @@ type GeneratorFormProps = {
   setFormData: React.Dispatch<React.SetStateAction<FormDataType>>;
   onGenerate: () => void;
   isGenerating: boolean;
+  onLoadBatch: (jsonString: string) => void;
 };
 
 export default function GeneratorForm({
@@ -40,10 +51,70 @@ export default function GeneratorForm({
   setFormData,
   onGenerate,
   isGenerating,
+  onLoadBatch,
 }: GeneratorFormProps) {
-  const handleSelectChange = (field: keyof FormDataType) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const isMale = isMaleGender(formData.gender);
+  const bodyTypes = getBodyTypes(formData.gender);
+  const hairStyles = getHairStyles(formData.gender);
+  const archetypes = getArchetypes(formData.gender);
+  const subGroupOptions =
+    subGroupOptionsMap[formData.regionEthnicity] ?? [];
+
+  useEffect(() => {
+    const options = subGroupOptionsMap[formData.regionEthnicity] ?? [];
+    if (options.length === 0) return;
+    setFormData((prev) => {
+      if (options.some((o) => o.value === prev.subGroup)) return prev;
+      return { ...prev, subGroup: options[0].value };
+    });
+  }, [formData.regionEthnicity, setFormData]);
+
+  const handleSelectChange =
+    (field: keyof FormDataType) => (value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+  const handleGenderChange = (value: string) => {
+    const genderDefaults = getGenderSpecificDefaults(value);
+    setFormData((prev) => {
+      const next: FormDataType = {
+        ...prev,
+        gender: value,
+        ...genderDefaults,
+      };
+      if (!isMaleGender(value)) {
+        delete next.facialHair;
+      }
+      return next;
+    });
   };
+
+  const handleRegionChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      regionEthnicity: value,
+      subGroup: getDefaultSubGroup(value),
+    }));
+  };
+
+  const handleEngineChange = (
+    engine: keyof FormDataType["engines"],
+    checked: boolean
+  ) => {
+    setFormData((prev) => {
+      const nextEngines = { ...prev.engines, [engine]: checked };
+      if (!hasAtLeastOneEngine(nextEngines)) {
+        return prev;
+      }
+      return { ...prev, engines: nextEngines };
+    });
+  };
+
+  const canGenerate = hasAtLeastOneEngine(formData.engines);
+  const onlyImagen =
+    formData.engines.imagen && !formData.engines.openai;
+  const onlyOpenai =
+    formData.engines.openai && !formData.engines.imagen;
 
   return (
     <Card>
@@ -57,11 +128,13 @@ export default function GeneratorForm({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <BatchProcessorInput onLoadBatch={onLoadBatch} />
+
         <div className="space-y-2">
           <Label htmlFor="gender">Gender</Label>
           <Select
             value={formData.gender}
-            onValueChange={handleSelectChange("gender")}
+            onValueChange={handleGenderChange}
             disabled={isGenerating}
           >
             <SelectTrigger id="gender">
@@ -98,27 +171,49 @@ export default function GeneratorForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="region-ethnicity">Region/Ethnicity</Label>
+          <Label htmlFor="region-ethnicity">Region / Ethnicity</Label>
           <Select
             value={formData.regionEthnicity}
-            onValueChange={handleSelectChange("regionEthnicity")}
+            onValueChange={handleRegionChange}
             disabled={isGenerating}
           >
             <SelectTrigger id="region-ethnicity">
               <SelectValue placeholder="Select region/ethnicity" />
             </SelectTrigger>
             <SelectContent>
-              {REGIONS.map((region) => (
-                <SelectItem key={region} value={region}>
-                  {region}
+              {regionEthnicityOptions.map((region) => (
+                <SelectItem key={region.value} value={region.value}>
+                  {region.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
+        {formData.regionEthnicity && subGroupOptions.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="sub-group">Specific Demographic Sub-Group</Label>
+            <Select
+              value={formData.subGroup}
+              onValueChange={handleSelectChange("subGroup")}
+              disabled={isGenerating}
+            >
+              <SelectTrigger id="sub-group">
+                <SelectValue placeholder="Select specific demographic profile..." />
+              </SelectTrigger>
+              <SelectContent>
+                {subGroupOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="space-y-2">
-          <Label htmlFor="skin-tone">Skin Tone</Label>
+          <Label htmlFor="skin-tone">Skin Tone (Fitzpatrick Scale)</Label>
           <Select
             value={formData.skinTone}
             onValueChange={handleSelectChange("skinTone")}
@@ -128,9 +223,9 @@ export default function GeneratorForm({
               <SelectValue placeholder="Select skin tone" />
             </SelectTrigger>
             <SelectContent>
-              {SKIN_TONES.map((tone) => (
-                <SelectItem key={tone} value={tone}>
-                  {tone}
+              {skinToneOptions.map((tone) => (
+                <SelectItem key={tone.value} value={tone.value}>
+                  {tone.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -148,7 +243,7 @@ export default function GeneratorForm({
               <SelectValue placeholder="Select body type" />
             </SelectTrigger>
             <SelectContent>
-              {BODY_TYPES.map((type) => (
+              {bodyTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
                 </SelectItem>
@@ -168,13 +263,95 @@ export default function GeneratorForm({
               <SelectValue placeholder="Select hair style" />
             </SelectTrigger>
             <SelectContent>
-              {HAIR_STYLES.map((style) => (
-                <SelectItem key={style} value={style}>
-                  {style}
+              {hairStyles.map((style) => (
+                <SelectItem key={style.value} value={style.value}>
+                  {style.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="hair-color">Hair Color</Label>
+          <Select
+            value={formData.hairColor}
+            onValueChange={handleSelectChange("hairColor")}
+            disabled={isGenerating}
+          >
+            <SelectTrigger id="hair-color">
+              <SelectValue placeholder="Select hair color" />
+            </SelectTrigger>
+            <SelectContent>
+              {hairColorOptions.map((color) => (
+                <SelectItem key={color.value} value={color.value}>
+                  {color.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isMale && (
+          <div className="space-y-2">
+            <Label htmlFor="facial-hair">Facial Hair</Label>
+            <Select
+              value={formData.facialHair ?? MALE_FACIAL_HAIR[0].value}
+              onValueChange={handleSelectChange("facialHair")}
+              disabled={isGenerating}
+            >
+              <SelectTrigger id="facial-hair">
+                <SelectValue placeholder="Select facial hair" />
+              </SelectTrigger>
+              <SelectContent>
+                {MALE_FACIAL_HAIR.map((style) => (
+                  <SelectItem key={style.value} value={style.value}>
+                    {style.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className="space-y-3 rounded-lg border p-4">
+          <Label className="text-base font-semibold">Generation Engine</Label>
+          <p className="text-xs text-muted-foreground">
+            Select at least one engine. Both run in parallel for side-by-side
+            comparison.
+          </p>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="engine-imagen"
+              checked={formData.engines.imagen}
+              disabled={isGenerating || onlyImagen}
+              onCheckedChange={(checked) =>
+                handleEngineChange("imagen", checked === true)
+              }
+            />
+            <Label
+              htmlFor="engine-imagen"
+              className="font-normal cursor-pointer"
+            >
+              Google Imagen 4 Fast
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="engine-openai"
+              checked={formData.engines.openai}
+              disabled={isGenerating || onlyOpenai}
+              onCheckedChange={(checked) =>
+                handleEngineChange("openai", checked === true)
+              }
+            />
+            <Label
+              htmlFor="engine-openai"
+              className="font-normal cursor-pointer"
+            >
+              OpenAI GPT Image 2
+            </Label>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -188,7 +365,7 @@ export default function GeneratorForm({
               <SelectValue placeholder="Select archetype" />
             </SelectTrigger>
             <SelectContent>
-              {ARCHETYPES.map((archetype) => (
+              {archetypes.map((archetype) => (
                 <SelectItem key={archetype} value={archetype}>
                   {archetype}
                 </SelectItem>
@@ -199,7 +376,7 @@ export default function GeneratorForm({
 
         <Button
           onClick={onGenerate}
-          disabled={isGenerating}
+          disabled={isGenerating || !canGenerate}
           className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
           size="lg"
         >

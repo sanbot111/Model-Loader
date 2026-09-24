@@ -1,96 +1,148 @@
 'use server';
 /**
- * @fileOverview A Genkit flow to generate model images from prompts.
- *
- * - generateModelImages - A function that handles the image generation process.
- * - GenerateModelImagesInput - The input type for the generateModelImages function.
- * - GenerateModelImagesOutput - The return type for the generateModelImages function.
+ * @fileOverview Sequential 3-angle generation via gemini-3-pro-image with hero-image reference.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
 
-const GenerateModelImagesInputSchema = z.object({
-  straightPrompt: z.string().describe('The prompt for the straight-on image.'),
-  leftPrompt: z.string().describe('The prompt for the left profile image.'),
-  rightPrompt: z.string().describe('The prompt for the right profile image.'),
-});
-export type GenerateModelImagesInput = z.infer<typeof GenerateModelImagesInputSchema>;
+const IMAGE_MODEL = 'googleai/gemini-3-pro-image';
 
-const GenerateModelImagesOutputSchema = z.object({
-  straight: z.string().describe('The data URI of the straight-on image.'),
-  left: z.string().describe('The data URI of the left profile image.'),
-  right: z.string().describe('The data URI of the right profile image.'),
-});
-export type GenerateModelImagesOutput = z.infer<typeof GenerateModelImagesOutputSchema>;
+/** Gemini native image models use imageConfig, not Imagen's top-level aspectRatio. */
+const GEMINI_IMAGE_CONFIG = {
+  responseModalities: ['TEXT', 'IMAGE'],
+  imageConfig: {
+    aspectRatio: '3:4',
+  },
+};
+
+export interface GenerateModelImagesInput {
+  prompts: {
+    straightPrompt: string;
+    leftPrompt: string;
+    rightPrompt: string;
+  };
+}
+
+export interface GenerateModelImagesOutput {
+  imagen?: { straight: string; left: string; right: string };
+}
+
+type GenerateResult = Awaited<ReturnType<typeof ai.generate>>;
+
+function extractImageDataUri(result: GenerateResult): string | undefined {
+  if (result.media?.url) {
+    return result.media.url;
+  }
+
+  const content = result.message?.content;
+  if (Array.isArray(content)) {
+    for (const part of content) {
+      if (
+        part &&
+        typeof part === 'object' &&
+        'media' in part &&
+        part.media &&
+        typeof part.media === 'object' &&
+        'url' in part.media &&
+        typeof part.media.url === 'string'
+      ) {
+        return part.media.url;
+      }
+    }
+  }
+
+  if (result.text?.startsWith('data:image')) {
+    return result.text;
+  }
+
+  return undefined;
+}
+
+function referenceImageContentType(dataUri: string): string {
+  const match = dataUri.match(/^data:([^;]+);/);
+  return match?.[1] ?? 'image/png';
+}
+
+async function generateWithReference(
+  promptText: string,
+  referenceDataUri: string
+): Promise<GenerateResult> {
+  const contentType = referenceImageContentType(referenceDataUri);
+
+  return ai.generate({
+    model: IMAGE_MODEL,
+    output: { format: 'media' },
+    prompt: [
+      {
+        media: {
+          url: referenceDataUri,
+          contentType,
+        },
+      },
+      {
+        text: `${promptText}\n\nUse the attached reference image as the strict identity anchor. Generate a new image that preserves the same person, clothing, and studio setup while applying only the new camera angle described above.`,
+      },
+    ],
+    config: GEMINI_IMAGE_CONFIG,
+  });
+}
+
+async function generateStraightImageInternal(
+  straightPrompt: string
+): Promise<string> {
+  const straightResponse = await ai.generate({
+    model: IMAGE_MODEL,
+    output: { format: 'media' },
+    prompt: straightPrompt,
+    config: GEMINI_IMAGE_CONFIG,
+  });
+
+  const straightImageB64 = extractImageDataUri(straightResponse);
+  if (!straightImageB64) {
+    throw new Error('Failed to generate the Master Reference image.');
+  }
+  return straightImageB64;
+}
+
+/** Generate a single hero (straight) image from text prompt. */
+export async function generateStraightImage(
+  straightPrompt: string
+): Promise<string> {
+  return generateStraightImageInternal(straightPrompt);
+}
+
+/** Generate a profile angle using a hero image as identity reference. */
+export async function generateProfileImage(
+  promptText: string,
+  referenceDataUri: string
+): Promise<string> {
+  const response = await generateWithReference(promptText, referenceDataUri);
+  const image = extractImageDataUri(response);
+  if (!image) {
+    throw new Error(
+      'Failed to generate profile reference image. The model may have returned text instead of an image—retry generation.'
+    );
+  }
+  return image;
+}
 
 export async function generateModelImages(
   input: GenerateModelImagesInput
 ): Promise<GenerateModelImagesOutput> {
-  return generateModelImagesFlow(input);
+  const { straightPrompt, leftPrompt, rightPrompt } = input.prompts;
+
+  const straightImageB64 = await generateStraightImageInternal(straightPrompt);
+
+  const [left, right] = await Promise.all([
+    generateProfileImage(leftPrompt, straightImageB64),
+    generateProfileImage(rightPrompt, straightImageB64),
+  ]);
+
+  return {
+    imagen: {
+      straight: straightImageB64,
+      left,
+      right,
+    },
+  };
 }
-
-const generateModelImagesFlow = ai.defineFlow(
-  {
-    name: 'generateModelImagesFlow',
-    inputSchema: GenerateModelImagesInputSchema,
-    outputSchema: GenerateModelImagesOutputSchema,
-  },
-  async (input) => {
-    const safetySettings = [
-      {
-        category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_ONLY_HIGH',
-      },
-      {
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_ONLY_HIGH',
-      },
-      {
-        category: 'HARM_CATEGORY_HARASSMENT',
-        threshold: 'BLOCK_ONLY_HIGH',
-      },
-      {
-        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold: 'BLOCK_ONLY_HIGH',
-      },
-    ];
-
-    const [straightImage, leftImage, rightImage] = await Promise.all([
-      ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: input.straightPrompt,
-        config: {
-          aspectRatio: "1:1",
-          safetySettings,
-        }
-      }),
-      ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: input.leftPrompt,
-        config: {
-          aspectRatio: "1:1",
-          safetySettings,
-        }
-      }),
-      ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: input.rightPrompt,
-        config: {
-          aspectRatio: "1:1",
-          safetySettings,
-        }
-      }),
-    ]);
-    
-    if (!straightImage.media.url || !leftImage.media.url || !rightImage.media.url) {
-        throw new Error('Image generation failed: One or more images returned no data.');
-    }
-
-    return {
-      straight: straightImage.media.url,
-      left: leftImage.media.url,
-      right: rightImage.media.url,
-    };
-  }
-);
