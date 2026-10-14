@@ -1,7 +1,7 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
-
-export const ai = genkit({
-  plugins: [googleAI()],
-  model: 'googleai/gemini-2.5-pro',
-});
+/**
+ * Legacy Genkit entrypoint retained for script compatibility.
+ * Runtime AI calls now use the official @google/genai Interactions API.
+ * @see ./gemini-client.ts
+ * @see https://ai.google.dev/gemini-api/docs/get-started
+ */
+export { getGeminiClient, PROMPT_MODEL, IMAGE_MODEL } from './gemini-client';

@@ -1,18 +1,17 @@
 'use server';
 /**
- * @fileOverview Sequential 3-angle generation via gemini-3-pro-image with hero-image reference.
+ * @fileOverview Sequential 3-angle generation via Gemini Nano Banana Pro
+ * (gemini-3-pro-image) using the official Interactions API.
+ * @see https://ai.google.dev/gemini-api/docs/image-generation
+ * @see https://ai.google.dev/gemini-api/docs/get-started
  */
 
-import { ai } from '@/ai/genkit';
+import { getGeminiClient, IMAGE_MODEL } from '@/ai/gemini-client';
 
-const IMAGE_MODEL = 'googleai/gemini-3-pro-image';
-
-/** Gemini native image models use imageConfig, not Imagen's top-level aspectRatio. */
-const GEMINI_IMAGE_CONFIG = {
-  responseModalities: ['TEXT', 'IMAGE'],
-  imageConfig: {
-    aspectRatio: '3:4',
-  },
+const IMAGE_RESPONSE_FORMAT = {
+  type: 'image' as const,
+  mime_type: 'image/jpeg' as const,
+  aspect_ratio: '3:4' as const,
 };
 
 export interface GenerateModelImagesInput {
@@ -27,81 +26,44 @@ export interface GenerateModelImagesOutput {
   imagen?: { straight: string; left: string; right: string };
 }
 
-type GenerateResult = Awaited<ReturnType<typeof ai.generate>>;
-
-function extractImageDataUri(result: GenerateResult): string | undefined {
-  if (result.media?.url) {
-    return result.media.url;
+function dataUriToBase64Parts(dataUri: string): {
+  mimeType: string;
+  data: string;
+} {
+  const match = dataUri.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) {
+    throw new Error('Invalid reference image data URI.');
   }
-
-  const content = result.message?.content;
-  if (Array.isArray(content)) {
-    for (const part of content) {
-      if (
-        part &&
-        typeof part === 'object' &&
-        'media' in part &&
-        part.media &&
-        typeof part.media === 'object' &&
-        'url' in part.media &&
-        typeof part.media.url === 'string'
-      ) {
-        return part.media.url;
-      }
-    }
-  }
-
-  if (result.text?.startsWith('data:image')) {
-    return result.text;
-  }
-
-  return undefined;
+  return { mimeType: match[1], data: match[2] };
 }
 
-function referenceImageContentType(dataUri: string): string {
-  const match = dataUri.match(/^data:([^;]+);/);
-  return match?.[1] ?? 'image/png';
-}
-
-async function generateWithReference(
-  promptText: string,
-  referenceDataUri: string
-): Promise<GenerateResult> {
-  const contentType = referenceImageContentType(referenceDataUri);
-
-  return ai.generate({
-    model: IMAGE_MODEL,
-    output: { format: 'media' },
-    prompt: [
-      {
-        media: {
-          url: referenceDataUri,
-          contentType,
-        },
-      },
-      {
-        text: `${promptText}\n\nUse the attached reference image as the strict identity anchor. Generate a new image that preserves the same person, clothing, and studio setup while applying only the new camera angle described above.`,
-      },
-    ],
-    config: GEMINI_IMAGE_CONFIG,
-  });
+function extractOutputImageDataUri(
+  interaction: {
+    output_image?: { data?: string; mime_type?: string } | null;
+  },
+  fallbackMime = 'image/jpeg'
+): string | undefined {
+  const image = interaction.output_image;
+  if (!image?.data) return undefined;
+  const mime = image.mime_type || fallbackMime;
+  return `data:${mime};base64,${image.data}`;
 }
 
 async function generateStraightImageInternal(
   straightPrompt: string
 ): Promise<string> {
-  const straightResponse = await ai.generate({
+  const ai = getGeminiClient();
+  const interaction = await ai.interactions.create({
     model: IMAGE_MODEL,
-    output: { format: 'media' },
-    prompt: straightPrompt,
-    config: GEMINI_IMAGE_CONFIG,
+    input: straightPrompt,
+    response_format: IMAGE_RESPONSE_FORMAT,
   });
 
-  const straightImageB64 = extractImageDataUri(straightResponse);
-  if (!straightImageB64) {
+  const dataUri = extractOutputImageDataUri(interaction);
+  if (!dataUri) {
     throw new Error('Failed to generate the Master Reference image.');
   }
-  return straightImageB64;
+  return dataUri;
 }
 
 /** Generate a single hero (straight) image from text prompt. */
@@ -116,14 +78,32 @@ export async function generateProfileImage(
   promptText: string,
   referenceDataUri: string
 ): Promise<string> {
-  const response = await generateWithReference(promptText, referenceDataUri);
-  const image = extractImageDataUri(response);
-  if (!image) {
+  const { mimeType, data } = dataUriToBase64Parts(referenceDataUri);
+  const ai = getGeminiClient();
+
+  const interaction = await ai.interactions.create({
+    model: IMAGE_MODEL,
+    input: [
+      {
+        type: 'image',
+        mime_type: mimeType,
+        data,
+      },
+      {
+        type: 'text',
+        text: `${promptText}\n\nUse the attached reference image as the strict identity anchor. Generate a new image that preserves the same person, clothing, and studio setup while applying only the new camera angle described above.`,
+      },
+    ],
+    response_format: IMAGE_RESPONSE_FORMAT,
+  });
+
+  const dataUri = extractOutputImageDataUri(interaction, mimeType);
+  if (!dataUri) {
     throw new Error(
       'Failed to generate profile reference image. The model may have returned text instead of an image—retry generation.'
     );
   }
-  return image;
+  return dataUri;
 }
 
 export async function generateModelImages(

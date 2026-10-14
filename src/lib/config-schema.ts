@@ -11,7 +11,10 @@ import {
   skinToneOptions,
   type RegionEthnicityOption,
 } from "@/lib/constants";
-import type { ConfigurationTraits } from "@/hooks/useConfigurationTracker";
+import type {
+  ConfigurationTraits,
+  ModelConfig,
+} from "@/hooks/useConfigurationTracker";
 import type { GenerateModelTurnaroundPromptsInput } from "@/ai/flows/generate-model-turnaround-prompts";
 
 export const ALL_REGIONS_COVERAGE_KEY = "__all_regions__";
